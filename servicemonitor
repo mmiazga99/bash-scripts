@@ -28,13 +28,12 @@ else
                 exit 3
 fi
 
-# monitoring service
+# Monitoring service
 while ps aux | grep $SERVICE | grep -v grep | grep -v servicemonitor >> /dev/null
 do
         sleep 10
 done
 
-# actions when "while" loop failed
 # restarting service, logging it, sending mail
 systemctl start $SERVICE
 if [ $? -eq 0 ]; then
