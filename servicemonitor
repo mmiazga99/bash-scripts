@@ -45,3 +45,4 @@ else
         mail -s "serivcemonitor. $SERVICE failed at $(date +%y-%m-%d)" root < .
 fi
 exit 0
+
