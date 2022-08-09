@@ -1,0 +1,47 @@
+#!/bin/bash
+# script that monitors and restart service when failed
+# run as ./servicemonitor
+# exit 2: user input error
+# exit 3: specified service is not running
+
+SERVICE="$1"
+[[ -z $SERVICE ]] && echo Specify service name as a script argument && exit 2
+[[ ${#SERVICE} -lt 3 ]] && echo Script agument must contain at least 3 characters && exit 2
+
+echo "===================================================="
+
+# Checking provided service name
+if systemctl list-units --type=service --all | grep "${SERVICE}.service" >> /dev/null
+then
+                # checking if service is running
+        if ps aux | grep $SERVICE | grep -v grep | grep -v servicemonitor
+                then
+                        echo -en '\n'
+                        echo All good, starting service monitoring.
+                fi
+else
+        echo There is no $SERVICE running at the moment.
+                echo Start it or make sure that service name is correct.
+                echo -en '\n'
+                echo Check list bellow, maybe it will give you a hint:
+                systemctl list-units --type=service --all  | grep ${SERVICE}."*service*"
+                exit 3
+fi
+
+# monitoring service
+while ps aux | grep $SERVICE | grep -v grep | grep -v servicemonitor >> /dev/null
+do
+        sleep 10
+done
+
+# actions when "while" loop failed
+# restarting service, logging it, sending mail
+systemctl start $SERVICE
+if [ $? -eq 0 ]; then
+        logger servicemonitor: $SERVICE restarted
+        mail -s "serivcemonitor. $SERVICE restarted at $(date +%y-%m-%d)" root < .
+else
+        logger servicemonitor: $SERVICE failed, and could not be restarted!
+        mail -s "serivcemonitor. $SERVICE failed at $(date +%y-%m-%d)" root < .
+fi
+exit 0
