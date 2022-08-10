@@ -4,7 +4,17 @@
 # exit 2: user input error
 # exit 3: specified service is not running
 
-SERVICE="$1"
+no_service () {
+        echo "There is no $SERVICE.service running at the moment."
+        echo Start it or make sure that service name is correct.
+        echo -en '\n'
+        echo Check list bellow, maybe it will give you a hint:
+        systemctl list-units --type=service --all  | grep ${SERVICE}."*service*"
+        exit 3
+}
+
+# Input validation
+SERVICE=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 [[ -z $SERVICE ]] && echo Specify service name as a script argument && exit 2
 [[ ${#SERVICE} -lt 3 ]] && echo Script agument must contain at least 3 characters && exit 2
 
@@ -15,17 +25,14 @@ if systemctl list-units --type=service --all | grep "${SERVICE}.service" >> /dev
 then
                 # checking if service is running
         if ps aux | grep $SERVICE | grep -v grep | grep -v servicemonitor
-                then
-                        echo -en '\n'
-                        echo All good, starting service monitoring.
-                fi
+        then
+                 echo -en '\n'
+                 echo All good, starting service monitoring.
+        else
+                no_service
+        fi
 else
-        echo There is no $SERVICE running at the moment.
-                echo Start it or make sure that service name is correct.
-                echo -en '\n'
-                echo Check list bellow, maybe it will give you a hint:
-                systemctl list-units --type=service --all  | grep ${SERVICE}."*service*"
-                exit 3
+        no_service
 fi
 
 # Monitoring service
@@ -44,4 +51,3 @@ else
         mail -s "serivcemonitor. $SERVICE failed at $(date +%y-%m-%d)" root < .
 fi
 exit 0
-
