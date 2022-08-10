@@ -4,6 +4,7 @@
 # exit 2: user input error
 # exit 3: specified service is not running
 
+# error message if service is not running or cannot be found
 no_service () {
         echo "There is no $SERVICE.service running at the moment."
         echo Start it or make sure that service name is correct.
